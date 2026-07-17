@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reseats — A seat for all your receipts</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+  :root {
+    --paper-50: #FBF9F4;
+    --paper-100: #F2EEE3;
+    --paper-200: #E6DFCE;
+    --ink-900: #1F2320;
+    --ink-600: #4B534E;
+    --muted: #767F79;
+    --keep-green: #2F9E7A;
+    --keep-green-dim: #22795D;
+    --keep-green-tint: #E4F3EE;
+    --stamp-red: #E8432F;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--sans); background: var(--paper-50); color: var(--ink-900); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+
+  /* Nav */
+  .nav { position: sticky; top: 0; z-index: 50; background: rgba(251,249,244,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--paper-200); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px; max-width: 1120px; margin: 0 auto; }
+  .logo { font-family: var(--mono); font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+  .logo .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--keep-green); display: inline-block; }
+  .nav-links { display: flex; gap: 32px; font-size: 0.92rem; font-weight: 500; }
+  .nav-links a { color: var(--ink-600); }
+  .nav-links a:hover { color: var(--ink-900); }
+
+  .btn { font-family: var(--mono); font-weight: 600; font-size: 0.85rem; padding: 11px 20px; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; transition: transform 0.15s ease, background 0.15s ease; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--keep-green); color: #fff; }
+  .btn-primary:hover { background: var(--keep-green-dim); }
+  .btn-ghost { background: transparent; color: var(--ink-900); border: 1px solid var(--paper-200); }
+  .btn-ghost:hover { border-color: var(--muted); }
+  .btn-dark { background: var(--ink-900); color: var(--paper-50); }
+
+  .eyebrow { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--keep-green-dim); margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+  .eyebrow::before { content: ''; width: 18px; height: 1px; background: var(--keep-green-dim); display: inline-block; }
+
+  /* Hero */
+  .hero { padding: 90px 0 60px; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 60px; align-items: center; }
+  .hero h1 { font-family: var(--mono); font-size: 3rem; line-height: 1.08; letter-spacing: -0.02em; font-weight: 700; margin-bottom: 22px; }
+  .hero h1 span { color: var(--keep-green); }
+  .hero p.lead { font-size: 1.1rem; color: var(--ink-600); max-width: 46ch; margin-bottom: 30px; }
+  .hero-ctas { display: flex; gap: 14px; margin-bottom: 22px; }
+  .hero-note { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+
+  /* Receipt fan visual */
+  .fan { position: relative; height: 380px; }
+  .fan-card {
+    position: absolute; width: 250px; background: #fff; border: 1px solid var(--paper-200);
+    border-radius: 8px; padding: 18px; box-shadow: 0 20px 40px -20px rgba(31,35,32,0.25);
+    font-family: var(--mono); font-size: 0.78rem; left: 50%;
+    opacity: 0; animation: slideIn 0.5s ease forwards;
+  }
+  .fan-card .store { font-weight: 700; font-size: 0.88rem; margin-bottom: 8px; }
+  .fan-card .line { display: flex; justify-content: space-between; color: var(--ink-600); padding: 3px 0; border-bottom: 1px dashed var(--paper-200); }
+  .fan-card .tag { display: inline-block; margin-top: 10px; font-size: 0.7rem; background: var(--keep-green-tint); color: var(--keep-green-dim); padding: 3px 8px; border-radius: 999px; }
+  .fan-card.c1 { top: 0; transform: translateX(-50%) rotate(-8deg); animation-delay: 0.1s; z-index: 1; }
+  .fan-card.c2 { top: 60px; transform: translateX(-50%) rotate(3deg); animation-delay: 0.3s; z-index: 2; }
+  .fan-card.c3 { top: 120px; transform: translateX(-50%) rotate(-2deg); animation-delay: 0.5s; z-index: 3; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-50%) translateY(20px) rotate(0deg); } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .fan-card { animation: none; opacity: 1; } }
+
+  /* Sections */
+  .section { padding: 90px 0; }
+  .section-white { background: #fff; }
+  .section-tint { background: var(--paper-100); }
+  .section-head { max-width: 640px; margin-bottom: 50px; }
+  .section-head h2 { font-family: var(--mono); font-size: 2rem; letter-spacing: -0.02em; margin-bottom: 14px; }
+  .section-head p { color: var(--ink-600); font-size: 1.05rem; max-width: 54ch; }
+
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+
+  .step-card { background: var(--paper-50); border: 1px solid var(--paper-200); border-radius: 10px; padding: 26px; }
+  .step-card .num { font-family: var(--mono); color: var(--keep-green); font-weight: 700; font-size: 0.85rem; margin-bottom: 14px; display: block; }
+  .step-card h3 { font-size: 1.02rem; margin-bottom: 8px; font-weight: 700; }
+  .step-card p { color: var(--ink-600); font-size: 0.9rem; }
+
+  .use-card { background: #fff; border: 1px solid var(--paper-200); border-radius: 10px; padding: 26px; }
+  .use-card .mark { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); margin-bottom: 12px; display: block; }
+  .use-card h3 { font-size: 1.05rem; margin-bottom: 8px; font-weight: 700; }
+  .use-card p { color: var(--ink-600); font-size: 0.92rem; }
+  .use-card.highlight { border-color: var(--stamp-red); background: #FFF6F4; }
+  .use-card.highlight .mark { color: var(--stamp-red); }
+
+  /* VentText integration band */
+  .integration { background: var(--ink-900); color: var(--paper-50); padding: 80px 0; }
+  .integration .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+  .integration h2 { font-family: var(--mono); font-size: 1.9rem; margin-bottom: 16px; }
+  .integration p { color: #A9B0AB; font-size: 1.02rem; max-width: 48ch; margin-bottom: 22px; }
+  .integration .badge { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 0.78rem; color: var(--stamp-red); border: 1px solid #3A413C; padding: 6px 12px; border-radius: 999px; margin-bottom: 20px; }
+  .mock-thread { background: #262C29; border: 1px solid #3A413C; border-radius: 14px; padding: 20px; }
+  .mock-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #3A413C; font-family: var(--mono); font-size: 0.82rem; }
+  .mock-row:last-child { border-bottom: none; }
+  .mock-row .ok { color: var(--keep-green); }
+
+  /* Pricing */
+  .price-card { background: #fff; border: 1px solid var(--paper-200); border-radius: 10px; padding: 30px; }
+  .price-card.featured { border-color: var(--keep-green); }
+  .price-card .tier { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; }
+  .price-card .amount { font-family: var(--mono); font-size: 1.8rem; font-weight: 700; margin-bottom: 14px; }
+  .price-card ul { list-style: none; color: var(--ink-600); font-size: 0.92rem; }
+  .price-card li { padding: 6px 0; }
+  .price-card li::before { content: '— '; color: var(--keep-green); }
+
+  .cta-band { background: var(--keep-green); padding: 70px 0; text-align: center; }
+  .cta-band h2 { font-family: var(--mono); font-size: 2rem; margin-bottom: 14px; color: #fff; }
+  .cta-band p { color: rgba(255,255,255,0.85); margin-bottom: 28px; font-size: 1.02rem; }
+
+  footer { padding: 44px 0; border-top: 1px solid var(--paper-200); }
+  .footer-inner { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; font-size: 0.85rem; color: var(--muted); }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; padding-top: 50px; }
+    .hero h1 { font-size: 2.1rem; }
+    .nav-links { display: none; }
+    .grid-3, .grid-2, .grid-4 { grid-template-columns: 1fr; }
+    .integration .wrap { grid-template-columns: 1fr; }
+    .fan { height: 300px; margin-top: 20px; }
+    .section { padding: 60px 0; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo"><span class="dot"></span>Reseats</div>
+    <div class="nav-links">
+      <a href="#how">How It Works</a>
+      <a href="#why">Why Reseats</a>
+      <a href="#checkout">For Merchants</a>
+      <a href="#venttext">VentText</a>
+      <a href="#pricing">Pricing</a>
+    </div>
+    <a href="#start" class="btn btn-primary">Start Saving</a>
+  </div>
+</nav>
+
+<section class="wrap hero">
+  <div>
+    <div class="eyebrow">A seat for all your receipts</div>
+    <h1>Every receipt<br>gets a <span>seat.</span></h1>
+    <p class="lead">Reseats quietly saves every receipt you get — email, in-store, or online — so it's already there the moment you need proof of purchase.</p>
+    <div class="hero-ctas">
+      <a href="#start" class="btn btn-primary">Start Saving Receipts</a>
+      <a href="#venttext" class="btn btn-ghost">See VentText Integration</a>
+    </div>
+    <div class="hero-note">&gt; free for personal use, always</div>
+  </div>
+
+  <div class="fan">
+    <div class="fan-card c1">
+      <div class="store">Green Leaf Grocers</div>
+      <div class="line"><span>Organic bananas</span><span>$3.20</span></div>
+      <div class="line"><span>Oat milk</span><span>$4.10</span></div>
+      <span class="tag">auto-saved</span>
+    </div>
+    <div class="fan-card c2">
+      <div class="store">Northside Electronics</div>
+      <div class="line"><span>USB-C cable</span><span>$14.99</span></div>
+      <div class="line"><span>Warranty: 2 yrs</span><span>—</span></div>
+      <span class="tag">auto-saved</span>
+    </div>
+    <div class="fan-card c3">
+      <div class="store">Mario's Trattoria</div>
+      <div class="line"><span>Dinner for two</span><span>$62.40</span></div>
+      <div class="line"><span>Order #0847</span><span>—</span></div>
+      <span class="tag">ready for VentText</span>
+    </div>
+  </div>
+</section>
+
+<section class="section section-white" id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">How it works</div>
+      <h2>Nothing to file. It just happens.</h2>
+      <p>Reseats captures receipts the moment they're issued, wherever they come from.</p>
+    </div>
+    <div class="grid-4">
+      <div class="step-card">
+        <span class="num">01</span>
+        <h3>Forward emails</h3>
+        <p>Online order confirmations are detected and saved automatically once connected.</p>
+      </div>
+      <div class="step-card">
+        <span class="num">02</span>
+        <h3>Snap in-store</h3>
+        <p>Photograph a paper receipt in two seconds — Reseats reads and files it for you.</p>
+      </div>
+      <div class="step-card">
+        <span class="num">03</span>
+        <h3>Sort automatically</h3>
+        <p>Every receipt is tagged by store, date, and category — searchable instantly.</p>
+      </div>
+      <div class="step-card">
+        <span class="num">04</span>
+        <h3>Ready when needed</h3>
+        <p>Pull up any purchase in seconds for a return, a warranty claim, or a complaint.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-tint" id="why">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Why keep receipts</div>
+      <h2>More useful than a shoebox full of paper</h2>
+      <p>You never know which receipt you'll need — until you need it.</p>
+    </div>
+    <div class="grid-3">
+      <div class="use-card">
+        <span class="mark">RETURNS</span>
+        <h3>Skip the "no receipt, no return" conversation</h3>
+        <p>Pull it up on your phone at the counter, every time.</p>
+      </div>
+      <div class="use-card">
+        <span class="mark">WARRANTY</span>
+        <h3>Prove purchase date instantly</h3>
+        <p>No digging through drawers when something breaks two years later.</p>
+      </div>
+      <div class="use-card">
+        <span class="mark">TAXES</span>
+        <h3>Deductible expenses, organized</h3>
+        <p>Filter by category and date range come tax season.</p>
+      </div>
+      <div class="use-card highlight">
+        <span class="mark">COMPLAINTS</span>
+        <h3>Verified proof, one tap away</h3>
+        <p>When something goes wrong, attach the exact receipt to a VentText complaint instantly.</p>
+      </div>
+      <div class="use-card">
+        <span class="mark">BUDGETING</span>
+        <h3>See where money actually goes</h3>
+        <p>Every purchase, categorized, without lifting a finger.</p>
+      </div>
+      <div class="use-card">
+        <span class="mark">SHARED HOUSEHOLDS</span>
+        <h3>One place for the whole family's receipts</h3>
+        <p>Link accounts so nothing gets lost between different cards or people.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-tint" id="checkout">
+  <div class="wrap">
+    <div class="grid-2" style="align-items:center;">
+      <div>
+        <div class="eyebrow">For merchant members</div>
+        <h2 style="font-family: var(--mono); font-size: 1.9rem; margin-bottom: 14px;">One line at checkout. That's it.</h2>
+        <p style="color: var(--ink-600); font-size: 1.02rem; max-width: 48ch; margin-bottom: 16px;">The prompt runs directly on your POS screen, so it requires POS integration to turn on. Merchant members are advised to integrate — it's the clearest way to raise your Customer Satisfaction Index and offer real after-sale service, instead of a receipt that gets thrown away.</p>
+        <p style="color: var(--ink-600); font-size: 1.02rem; max-width: 48ch;">No app for the customer to find later. No "keep your receipt" reminder that gets ignored. Just one tap at checkout, and it's already in their Reseats vault — ready to attach to a VentText complaint if anything ever goes wrong.</p>
+        <div class="pill" style="margin-top:18px; display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:0.78rem; color:var(--ink-600); border:1px solid var(--paper-200); padding:6px 12px; border-radius:999px;">Requires POS integration</div>
+      </div>
+      <div class="use-card" style="background:#fff;">
+        <span class="mark">CHECKOUT SCREEN</span>
+        <div style="font-family: var(--mono); font-size: 1rem; font-weight: 600; margin: 14px 0 18px;">Send your receipt to Reseats too?</div>
+        <div style="display:flex; gap:12px;">
+          <span class="btn btn-primary" style="pointer-events:none;">Yes, save it</span>
+          <span class="btn btn-ghost" style="pointer-events:none;">No thanks</span>
+        </div>
+        <p style="margin-top:18px; color: var(--muted); font-size: 0.85rem;">Shown once per customer, remembered after that — a small step toward better after-sale service.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="integration" id="venttext">
+  <div class="wrap">
+    <div>
+      <div class="badge">● Works with VentText</div>
+      <h2>Bad experience? Your proof is already there.</h2>
+      <p>When you vent a complaint through VentText, Reseats hands over the matching receipt automatically — no digging for a photo, no typing an order number. Verified in seconds.</p>
+      <a href="#start" class="btn btn-primary">Connect to VentText</a>
+    </div>
+    <div class="mock-thread">
+      <div class="mock-row"><span>Complaint sent to Mario's Trattoria</span><span class="ok">✓</span></div>
+      <div class="mock-row"><span>Receipt matched from Reseats</span><span class="ok">✓</span></div>
+      <div class="mock-row"><span>Verification</span><span class="ok">instant</span></div>
+      <div class="mock-row"><span>Status</span><span class="ok">RESOLVED</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-white" id="pricing">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Pricing</div>
+      <h2>Free to start, simple to grow</h2>
+      <p>Personal use is free, forever. Upgrade for family sharing and unlimited history.</p>
+    </div>
+    <div class="grid-3">
+      <div class="price-card">
+        <div class="tier">PERSONAL</div>
+        <div class="amount">Free</div>
+        <ul>
+          <li>Unlimited receipt capture</li>
+          <li>12 months of history</li>
+          <li>VentText integration</li>
+        </ul>
+      </div>
+      <div class="price-card featured">
+        <div class="tier">PLUS</div>
+        <div class="amount">$4/mo</div>
+        <ul>
+          <li>Unlimited history</li>
+          <li>Warranty expiration alerts</li>
+          <li>Tax-category export</li>
+        </ul>
+      </div>
+      <div class="price-card">
+        <div class="tier">FAMILY</div>
+        <div class="amount">$8/mo</div>
+        <ul>
+          <li>Up to 5 linked accounts</li>
+          <li>Shared receipt vault</li>
+          <li>Everything in Plus</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band" id="start">
+  <div class="wrap">
+    <h2>Stop losing receipts. Start today.</h2>
+    <p>Free for personal use — no credit card required.</p>
+    <a href="#" class="btn btn-dark">Start Saving Receipts</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div>© 2026 Reseats. Works seamlessly with VentText.</div>
+    <div style="display:flex; gap:24px;">
+      <a href="#how">How It Works</a>
+      <a href="#why">Why Reseats</a>
+      <a href="#venttext">VentText</a>
+      <a href="#pricing">Pricing</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
