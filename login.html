@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in to Reseats</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+  :root {
+    --paper-50: #FBF9F4;
+    --paper-100: #F2EEE3;
+    --paper-200: #E6DFCE;
+    --ink-900: #1F2320;
+    --ink-600: #4B534E;
+    --muted: #767F79;
+    --keep-green: #2F9E7A;
+    --keep-green-dim: #22795D;
+    --keep-green-tint: #E4F3EE;
+    --stamp-red: #E8432F;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--sans); background: var(--paper-50); color: var(--ink-900);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 24px; -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+
+  .card {
+    width: 100%; max-width: 420px; background: #fff; border: 1px solid var(--paper-200);
+    border-radius: 14px; padding: 40px 36px; box-shadow: 0 30px 60px -30px rgba(31,35,32,0.18);
+  }
+
+  .logo { font-family: var(--mono); font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; margin-bottom: 26px; }
+  .logo .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--keep-green); display: inline-block; }
+
+  .eyebrow { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--keep-green-dim); margin-bottom: 10px; }
+  h1 { font-family: var(--mono); font-size: 1.5rem; margin-bottom: 8px; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-600); font-size: 0.94rem; margin-bottom: 28px; max-width: 40ch; }
+
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 8px; color: var(--ink-600); }
+  .phone-row { display: flex; gap: 8px; }
+  .phone-row select {
+    font-family: var(--mono); font-size: 0.9rem; padding: 12px 10px; border-radius: 8px;
+    border: 1px solid var(--paper-200); background: var(--paper-50); color: var(--ink-900);
+  }
+  input[type="tel"], input[type="text"] {
+    width: 100%; font-family: var(--mono); font-size: 1rem; padding: 12px 14px;
+    border-radius: 8px; border: 1px solid var(--paper-200); background: var(--paper-50);
+    color: var(--ink-900); letter-spacing: 0.04em;
+  }
+  input:focus, select:focus { outline: 2px solid var(--keep-green); outline-offset: 1px; }
+
+  .otp-row { display: flex; gap: 8px; justify-content: space-between; }
+  .otp-row input {
+    width: 48px; height: 56px; text-align: center; font-size: 1.3rem; padding: 0;
+  }
+
+  .btn {
+    width: 100%; font-family: var(--mono); font-weight: 600; font-size: 0.92rem;
+    padding: 13px 20px; border-radius: 8px; border: none; cursor: pointer;
+    background: var(--keep-green); color: #fff; transition: background 0.15s ease, transform 0.15s ease;
+    margin-top: 6px;
+  }
+  .btn:hover { background: var(--keep-green-dim); transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent; color: var(--ink-600); border: 1px solid var(--paper-200);
+    margin-top: 10px;
+  }
+  .btn-secondary:hover { border-color: var(--muted); background: transparent; }
+
+  .helper { font-size: 0.82rem; color: var(--muted); margin-top: 14px; text-align: center; }
+  .helper a { color: var(--keep-green-dim); font-weight: 600; }
+
+  .badge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); border: 1px dashed var(--paper-200); padding: 10px 12px; border-radius: 8px; }
+
+  .step { display: none; }
+  .step.active { display: block; }
+
+  .receipt-preview {
+    background: var(--paper-50); border: 1px dashed var(--paper-200); border-radius: 8px;
+    padding: 14px; font-family: var(--mono); font-size: 0.8rem; margin-bottom: 22px;
+  }
+  .receipt-preview .store { font-weight: 700; margin-bottom: 4px; }
+  .receipt-preview .line { display: flex; justify-content: space-between; color: var(--ink-600); }
+
+  .success-check {
+    width: 52px; height: 52px; border-radius: 50%; background: var(--keep-green-tint);
+    color: var(--keep-green-dim); display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- STEP 1: Phone number entry -->
+  <div class="step active" id="step-phone">
+    <div class="logo"><span class="dot"></span>Reseats</div>
+    <div class="badge-row">📎 Receipt from Mario's Trattoria ready to save</div>
+    <div class="eyebrow">Almost there</div>
+    <h1>Where should this receipt live?</h1>
+    <p class="sub">Enter your number and we'll create your Reseats vault, or find the one you already have.</p>
+
+    <div class="field">
+      <label for="phone">Mobile number</label>
+      <div class="phone-row">
+        <select aria-label="Country code">
+          <option>+1</option>
+          <option>+44</option>
+          <option>+91</option>
+        </select>
+        <input type="tel" id="phone" placeholder="(555) 000-0000" inputmode="numeric">
+      </div>
+    </div>
+
+    <button class="btn" onclick="showStep('step-otp')">Send code</button>
+    <p class="helper">By continuing you agree to Reseats' Terms & Privacy Policy.</p>
+  </div>
+
+  <!-- STEP 2: OTP verification -->
+  <div class="step" id="step-otp">
+    <div class="logo"><span class="dot"></span>Reseats</div>
+    <div class="eyebrow">Verify it's you</div>
+    <h1>Enter the code we texted you</h1>
+    <p class="sub">Sent to <strong>(555) 000-0000</strong>. This keeps every vault tied to a real number, so nothing gets mixed up.</p>
+
+    <div class="field">
+      <label>6-digit code</label>
+      <div class="otp-row">
+        <input type="text" maxlength="1" inputmode="numeric">
+        <input type="text" maxlength="1" inputmode="numeric">
+        <input type="text" maxlength="1" inputmode="numeric">
+        <input type="text" maxlength="1" inputmode="numeric">
+        <input type="text" maxlength="1" inputmode="numeric">
+        <input type="text" maxlength="1" inputmode="numeric">
+      </div>
+    </div>
+
+    <button class="btn" onclick="showStep('step-new')">Verify</button>
+    <button class="btn btn-secondary" onclick="showStep('step-phone')">Use a different number</button>
+    <p class="helper">Didn't get it? <a href="#">Resend code</a></p>
+  </div>
+
+  <!-- STEP 3a: New number → quick account setup -->
+  <div class="step" id="step-new">
+    <div class="logo"><span class="dot"></span>Reseats</div>
+    <div class="eyebrow">New number, new vault</div>
+    <h1>Let's set up your Reseats vault</h1>
+    <p class="sub">Just a name — everything else stays automatic from here.</p>
+
+    <div class="field">
+      <label for="name">Your name</label>
+      <input type="text" id="name" placeholder="Jordan Lee">
+    </div>
+
+    <button class="btn" onclick="showStep('step-done')">Create my vault</button>
+  </div>
+
+  <!-- STEP 3b/4: Done -->
+  <div class="step" id="step-done">
+    <div class="success-check">✓</div>
+    <h1>You're all set</h1>
+    <p class="sub">This receipt — and every one after it — is saved to your Reseats vault automatically.</p>
+
+    <div class="receipt-preview">
+      <div class="store">Mario's Trattoria</div>
+      <div class="line"><span>Dinner for two</span><span>$62.40</span></div>
+      <div class="line"><span>Saved to Reseats</span><span>✓</span></div>
+    </div>
+
+    <button class="btn">View my vault</button>
+    <p class="helper">Already using VentText? This receipt is ready to attach the moment you need it.</p>
+  </div>
+
+</div>
+
+<script>
+  function showStep(id) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // Auto-advance OTP inputs
+  document.querySelectorAll('.otp-row input').forEach((input, idx, all) => {
+    input.addEventListener('input', () => {
+      if (input.value && idx < all.length - 1) all[idx + 1].focus();
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !input.value && idx > 0) all[idx - 1].focus();
+    });
+  });
+</script>
+
+</body>
+</html>
