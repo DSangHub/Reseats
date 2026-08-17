@@ -5,6 +5,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { config } from './config.js';
 import { ApiError } from './lib/errors.js';
 import { cardRoutes } from './routes/cards.js';
+import { demoRoutes } from './routes/demo.js';
 import { healthRoutes } from './routes/health.js';
 import { posCustomerRoutes } from './routes/pos/customers.js';
 import { posTransactionRoutes } from './routes/pos/transactions.js';
@@ -101,6 +102,10 @@ export async function buildApp(): Promise<FastifyInstance> {
     },
     { prefix: '/v1' },
   );
+
+  // Public demo surface for the marketing site's checkout mockup. No auth by
+  // design, so it is rate limited and confined to a single demo merchant.
+  await app.register(demoRoutes, { prefix: '/v1' });
 
   // Provider webhooks need a raw body, so they get their own encapsulated scope
   // with a different content type parser.

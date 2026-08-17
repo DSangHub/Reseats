@@ -153,6 +153,25 @@ Two ship today:
 
 Point the provider at `POST /v1/providers/webhooks/:provider`.
 
+## Public demo endpoints
+
+The checkout mockup on reseats.org is wired to these:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/v1/demo/checkout` | Run a sale end to end and return the receipt |
+| `POST` | `/v1/demo/lookup` | Enrollment check |
+
+They take no API key, which is the entire point: a merchant key shipped in browser JavaScript is a key you have given away. Instead they are rate limited (30/min per IP), confined to a single auto-provisioned `reseats-demo` merchant, and restricted to three fixed baskets so a caller cannot write arbitrary amounts or merchant names. Below the surface it is the real path — same `createPosReceipt`, same fingerprinting, same claim tokens.
+
+Point the page at a deployment by setting `window.RESEATS_API_BASE` before the inline script runs:
+
+```html
+<script>window.RESEATS_API_BASE = 'https://api.reseats.app';</script>
+```
+
+Left unset, the card falls back to a local simulation labelled "simulated — no backend configured". The same fallback catches a timeout, a rate limit, or a cold start. A marketing page showing a stack trace is worse than a static mockup.
+
 ## Matching
 
 `src/services/matching.ts`. Card transactions and POS receipts arrive independently and out of order — the register reports in seconds, the network posts minutes to days later with a mangled descriptor and sometimes a different amount. Whichever arrives second binds to the first.
