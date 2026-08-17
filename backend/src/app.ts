@@ -39,7 +39,14 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   await app.register(helmet, { contentSecurityPolicy: false });
-  await app.register(cors, { origin: true, credentials: true });
+  await app.register(cors, {
+    // Explicit allowlist when configured; reflect the caller only in dev.
+    origin: cfg.CORS_ORIGINS.length > 0 ? cfg.CORS_ORIGINS : true,
+    credentials: true,
+    methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key', 'X-Reseats-Key'],
+    maxAge: 86400,
+  });
   await app.register(rateLimit, {
     global: false,
     max: 600,

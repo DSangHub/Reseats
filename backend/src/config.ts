@@ -20,6 +20,14 @@ const schema = z.object({
   LOG_LEVEL: z.string().default('info'),
   PUBLIC_BASE_URL: z.string().url().default('http://localhost:8080'),
 
+  // Browser origins allowed to call the API. The site and the API are separate
+  // origins in this deployment, so this must list the site. Empty means
+  // "reflect any origin" — fine locally, refused at boot in production.
+  CORS_ORIGINS: z
+    .string()
+    .default('')
+    .transform((v) => v.split(',').map((s) => s.trim()).filter(Boolean)),
+
   DATABASE_URL: z.string().min(1),
   DATABASE_SSL: bool(false),
   DATABASE_POOL_MAX: int(10),
@@ -57,6 +65,17 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
       .join('\n');
     throw new Error(`Invalid environment configuration:\n${detail}`);
   }
+
+  // Allow-all CORS is a development convenience. Shipping it would let any page
+  // on the internet call the demo endpoints with a visitor's browser, so fail
+  // at boot rather than discovering it in production.
+  if (parsed.data.NODE_ENV === 'production' && parsed.data.CORS_ORIGINS.length === 0) {
+    throw new Error(
+      'CORS_ORIGINS must list the allowed site origins in production, ' +
+        'e.g. CORS_ORIGINS=https://reseats.org,https://www.reseats.org',
+    );
+  }
+
   return parsed.data;
 }
 

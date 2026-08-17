@@ -35,4 +35,26 @@ describe('loadConfig', () => {
   it('rejects a non-numeric port', () => {
     expect(() => loadConfig({ ...base, PORT: 'eight thousand' })).toThrow();
   });
+
+  it('parses the CORS allowlist', () => {
+    const cfg = loadConfig({ ...base, CORS_ORIGINS: 'https://reseats.org, https://www.reseats.org' });
+    expect(cfg.CORS_ORIGINS).toEqual(['https://reseats.org', 'https://www.reseats.org']);
+  });
+
+  it('allows an empty CORS list outside production', () => {
+    expect(loadConfig(base).CORS_ORIGINS).toEqual([]);
+  });
+
+  it('refuses to boot in production without a CORS allowlist', () => {
+    expect(() => loadConfig({ ...base, NODE_ENV: 'production' })).toThrow(/CORS_ORIGINS/);
+  });
+
+  it('boots in production once origins are set', () => {
+    const cfg = loadConfig({
+      ...base,
+      NODE_ENV: 'production',
+      CORS_ORIGINS: 'https://reseats.org',
+    });
+    expect(cfg.CORS_ORIGINS).toEqual(['https://reseats.org']);
+  });
 });

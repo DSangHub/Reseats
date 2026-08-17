@@ -197,11 +197,44 @@ Amount or descriptor alone is never enough. A transaction that finds no POS rece
 
 ## Deployment
 
-Long-running (Fly, Render, a container): leave `WEBHOOK_WORKER_ENABLED=true` and the in-process worker drains the queue.
-
-Serverless (Vercel): set `WEBHOOK_WORKER_ENABLED=false` and call `POST /internal/webhooks/drain` from a cron with `X-Internal-Token: $INTERNAL_API_TOKEN`. Use the Supabase connection pooler URL and keep `DATABASE_POOL_MAX` low.
-
 `GET /healthz` is liveness; `GET /readyz` checks the database and reports enabled providers.
+
+### Railway
+
+`railway.json` is checked in. Railway does not read the root directory from config-as-code, so that one setting is done in the dashboard.
+
+1. **New project → Deploy from GitHub repo →** `DSangHub/Reseats`.
+2. **Service Settings → Source → Root Directory:** `backend`. Without this, Railway builds the repo root and finds no `package.json`.
+3. **+ New → Database → Add PostgreSQL.**
+4. **Variables** on the API service:
+
+   | Variable | Value |
+   | --- | --- |
+   | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` — reference, not a paste |
+   | `NODE_ENV` | `production` |
+   | `CORS_ORIGINS` | `https://reseats.org,https://www.reseats.org` |
+   | `PUBLIC_BASE_URL` | your Railway domain, then your API domain once mapped |
+   | `ENCRYPTION_KEY` | `openssl rand -base64 32` |
+   | `API_KEY_PEPPER` | `openssl rand -base64 32` |
+   | `SESSION_JWT_SECRET` | Supabase JWT secret, or any long random string if not using Supabase Auth |
+   | `CARD_PROVIDERS` | `mock` to start; `stripe,mock` once keys are in |
+   | `DATABASE_SSL` | `false` — Railway's private network does not need it |
+
+5. **Settings → Networking → Generate Domain.**
+6. Uncomment the `RESEATS_API_BASE` line near the bottom of `index.html` and point it at that domain.
+
+`preDeployCommand` runs `npm run migrate:prod` before each release, so the schema is applied on first boot and on every later migration. The migration runner records what it has applied and skips it next time.
+
+`PORT` is injected by Railway — do not set it. Leave `WEBHOOK_WORKER_ENABLED` unset (defaults true): Railway runs a long-lived process, so the in-process worker drains the webhook queue and no cron is needed.
+
+Two things to know:
+
+- **`API_KEY_PEPPER` is effectively permanent.** Rotating it invalidates every merchant API key and every card fingerprint at once. Generate it properly the first time.
+- **The server refuses to boot in production without `CORS_ORIGINS`.** That is deliberate — allow-any-origin would let any page on the internet drive the demo endpoints with a visitor's browser.
+
+### Serverless (Vercel)
+
+Fastify needs a handler wrapper, and there is no long-lived process for the webhook worker. Set `WEBHOOK_WORKER_ENABLED=false` and call `POST /internal/webhooks/drain` from a cron with `X-Internal-Token: $INTERNAL_API_TOKEN`. Use a connection pooler URL and keep `DATABASE_POOL_MAX` low.
 
 ## Layout
 
