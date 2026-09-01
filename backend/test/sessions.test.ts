@@ -36,4 +36,15 @@ describe('pilot vault session', () => {
     expect(claims.sub).toBe(response.json().user_id);
     expect(claims.exp).toBeGreaterThan(Math.floor(Date.now() / 1000));
   });
+
+  it('preserves Fastify client errors instead of reporting a server failure', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/session/anonymous',
+      headers: { 'content-type': 'application/json' },
+      payload: '',
+    });
+    expect(response.statusCode).toBe(400);
+    expect(response.json().error.code).toBe('FST_ERR_CTP_EMPTY_JSON_BODY');
+  });
 });
