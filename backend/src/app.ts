@@ -6,7 +6,6 @@ import { config } from './config.js';
 import { ApiError } from './lib/errors.js';
 import { demoRoutes } from './routes/demo.js';
 import { healthRoutes } from './routes/health.js';
-import { posCustomerRoutes } from './routes/pos/customers.js';
 import { posTransactionRoutes } from './routes/pos/transactions.js';
 import { posWebhookRoutes } from './routes/pos/webhooks.js';
 import { receiptRoutes } from './routes/receipts.js';
@@ -93,7 +92,6 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(
     async (scope) => {
       await scope.register(posTransactionRoutes);
-      await scope.register(posCustomerRoutes);
       await scope.register(posWebhookRoutes);
     },
     { prefix: '/v1/pos' },
@@ -101,6 +99,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Customer receipt vault: QR claims, manual uploads, and after-sale help.
   await app.register(receiptRoutes, { prefix: '/v1' });
+  await app.register(demoRoutes, { prefix: '/v1' });
 
   return app;
 }
