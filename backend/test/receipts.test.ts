@@ -29,7 +29,7 @@ describe('resolveCustomer', () => {
     const db = stubDb([]);
     const userId = await resolveCustomer(db, base, { brand: 'visa', last4: '4242' });
     expect(userId).toBeNull();
-    expect(db.calls.some((call) => call.sql.includes('payment_cards'))).toBe(false);
+    expect(db.calls.some((call) => call.text.includes('payment_cards'))).toBe(false);
   });
 
   it('prefers an explicit user id', async () => {
