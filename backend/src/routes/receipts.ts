@@ -169,7 +169,7 @@ export async function receiptRoutes(app: FastifyInstance): Promise<void> {
     return listEnvelope(rows.map((row) => ({ object: 'after_sale_case', ...row })), false);
   });
 
-  app.post('/receipts/claim, async (req) => {
+  app.post('/receipts/claim', async (req) => {
     const parsed = claimSchema.safeParse(req.body);
     if (!parsed.success) {
       throw badRequest('invalid_parameter', 'claim_token is required.', 'claim_token');
