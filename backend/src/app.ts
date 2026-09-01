@@ -85,6 +85,16 @@ export async function buildApp(): Promise<FastifyInstance> {
         },
       });
     }
+    const statusCode = (err as { statusCode?: number }).statusCode;
+    if (statusCode && statusCode >= 400 && statusCode < 500) {
+      return reply.code(statusCode).send({
+        error: {
+          type: 'invalid_request_error',
+          code: (err as { code?: string }).code ?? 'bad_request',
+          message: err instanceof Error ? err.message : 'Invalid request.',
+        },
+      });
+    }
     req.log.error({ err }, 'unhandled error');
     return reply.code(500).send({
       error: {
