@@ -1,13 +1,10 @@
 import { buildApp } from './app.js';
 import { config } from './config.js';
 import { closePool } from './db/pool.js';
-import { bootstrapProviders } from './services/cards/index.js';
 import { startWebhookWorker } from './services/webhooks/dispatcher.js';
 
 async function main(): Promise<void> {
   const cfg = config();
-  bootstrapProviders();
-
   const app = await buildApp();
   const worker = cfg.WEBHOOK_WORKER_ENABLED ? startWebhookWorker() : null;
 
