@@ -11,6 +11,23 @@ import { posWebhookRoutes } from './routes/pos/webhooks.js';
 import { receiptRoutes } from './routes/receipts.js';
 import { sessionRoutes } from './routes/sessions.js';
 
+/** Exact origins plus an explicit HTTPS subdomain wildcard for preview hosts. */
+export function isAllowedOrigin(origin: string | undefined, allowed: string[]): boolean {
+  if (!origin) return true;
+  return allowed.some((entry) => {
+    if (entry === origin) return true;
+    if (!entry.startsWith('https://*.')) return false;
+    try {
+      const candidate = new URL(origin);
+      const suffix = entry.slice('https://*'.length);
+      return candidate.protocol === 'https:' && candidate.hostname.endsWith(suffix)
+        && candidate.hostname.length > suffix.length;
+    } catch {
+      return false;
+    }
+  });
+}
+
 export async function buildApp(): Promise<FastifyInstance> {
   const cfg = config();
 
@@ -39,7 +56,9 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(helmet, { contentSecurityPolicy: false });
   await app.register(cors, {
     // Explicit allowlist when configured; reflect the caller only in dev.
-    origin: cfg.CORS_ORIGINS.length > 0 ? cfg.CORS_ORIGINS : true,
+    origin: cfg.CORS_ORIGINS.length > 0
+      ? (origin, callback) => callback(null, isAllowedOrigin(origin, cfg.CORS_ORIGINS))
+      : true,
     credentials: true,
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key', 'X-Reseats-Key'],
