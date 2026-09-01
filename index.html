@@ -187,24 +187,24 @@
   <div class="wrap">
     <div class="section-head">
       <div class="eyebrow">How it works</div>
-      <h2>Nothing to file. It just happens.</h2>
-      <p>Reseats captures receipts the moment they're issued, wherever they come from.</p>
+      <h2>Save it once. Find it when you need help.</h2>
+      <p>Scan a merchant QR code or upload a photo or PDF into one secure receipt vault.</p>
     </div>
     <div class="grid-4">
       <div class="step-card">
         <span class="num">01</span>
-        <h3>Forward emails</h3>
-        <p>Online order confirmations are detected and saved automatically once connected.</p>
+        <h3>Scan the QR</h3>
+        <p>Claim a digital receipt from a participating merchant at checkout.</p>
       </div>
       <div class="step-card">
         <span class="num">02</span>
-        <h3>Snap in-store</h3>
-        <p>Photograph a paper receipt in two seconds — Reseats reads and files it for you.</p>
+        <h3>Upload a receipt</h3>
+        <p>Add a photo or PDF when a merchant does not offer a Reseats QR code.</p>
       </div>
       <div class="step-card">
         <span class="num">03</span>
-        <h3>Sort automatically</h3>
-        <p>Every receipt is tagged by store, date, and category — searchable instantly.</p>
+        <h3>Keep one vault</h3>
+        <p>Search your receipts by merchant and purchase date instead of digging through paper.</p>
       </div>
       <div class="step-card">
         <span class="num">04</span>
@@ -246,12 +246,12 @@
       <div class="use-card">
         <span class="mark">BUDGETING</span>
         <h3>See where money actually goes</h3>
-        <p>Every purchase, categorized, without lifting a finger.</p>
+        <p>Keep the receipts you choose in one searchable place.</p>
       </div>
       <div class="use-card">
         <span class="mark">SHARED HOUSEHOLDS</span>
         <h3>One place for the whole family's receipts</h3>
-        <p>Link accounts so nothing gets lost between different cards or people.</p>
+        <p>Keep important household receipts together without linking payment cards.</p>
       </div>
     </div>
   </div>
@@ -267,14 +267,43 @@
         <p style="color: var(--ink-600); font-size: 1.02rem; max-width: 48ch;">No app for the customer to find later. No "keep your receipt" reminder that gets ignored. Just one tap at checkout, and it's already in their Reseats vault — ready to attach to a VentText complaint if anything ever goes wrong.</p>
         <div class="pill" style="margin-top:18px; display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:0.78rem; color:var(--ink-600); border:1px solid var(--paper-200); padding:6px 12px; border-radius:999px;">Requires POS integration</div>
       </div>
-      <div class="use-card" style="background:#fff;">
-        <span class="mark">CHECKOUT SCREEN</span>
-        <div style="font-family: var(--mono); font-size: 1rem; font-weight: 600; margin: 14px 0 18px;">Send your receipt to Reseats too?</div>
-        <div style="display:flex; gap:12px;">
-          <span class="btn btn-primary" style="pointer-events:none;">Yes, save it</span>
-          <span class="btn btn-ghost" style="pointer-events:none;">No thanks</span>
+      <div class="use-card" id="checkout-demo" style="background:#fff;">
+        <span class="mark">CHECKOUT SCREEN <span id="demo-live-badge" style="display:none; color: var(--keep-green-dim);">· LIVE</span></span>
+
+        <!-- State 1: the prompt as the customer sees it -->
+        <div id="demo-prompt">
+          <div style="font-family: var(--mono); font-size: 1rem; font-weight: 600; margin: 14px 0 18px;">Send your receipt to Reseats too?</div>
+          <div style="display:flex; gap:12px;">
+            <button type="button" class="btn btn-primary" id="demo-save">Yes, save it</button>
+            <button type="button" class="btn btn-ghost" id="demo-decline">No thanks</button>
+          </div>
+          <p style="margin-top:18px; color: var(--muted); font-size: 0.85rem;">Shown once per customer, remembered after that — a small step toward better after-sale service.</p>
         </div>
-        <p style="margin-top:18px; color: var(--muted); font-size: 0.85rem;">Shown once per customer, remembered after that — a small step toward better after-sale service.</p>
+
+        <!-- State 2: working -->
+        <div id="demo-pending" style="display:none;">
+          <div style="font-family: var(--mono); font-size: 1rem; font-weight: 600; margin: 14px 0 18px;">Saving…</div>
+          <p style="color: var(--muted); font-size: 0.85rem;">Posting the sale to the Reseats POS API.</p>
+        </div>
+
+        <!-- State 3: the receipt that came back -->
+        <div id="demo-saved" style="display:none;">
+          <div style="font-family: var(--mono); font-size: 1rem; font-weight: 600; margin: 14px 0 6px;">Saved to your vault ✓</div>
+          <p style="color: var(--muted); font-size: 0.82rem; margin-bottom: 16px;" id="demo-receipt-meta"></p>
+          <div style="border-top: 1px dashed var(--paper-200); padding-top: 14px;" id="demo-receipt-lines"></div>
+          <div style="display:flex; justify-content:space-between; font-family: var(--mono); font-weight:600; border-top: 1px solid var(--paper-200); margin-top: 12px; padding-top: 12px;">
+            <span>Total</span><span id="demo-receipt-total"></span>
+          </div>
+          <p style="margin-top:16px; color: var(--muted); font-size: 0.78rem; font-family: var(--mono);" id="demo-receipt-id"></p>
+          <button type="button" class="btn btn-ghost" id="demo-reset" style="margin-top:14px;">Run it again</button>
+        </div>
+
+        <!-- State 4: declined -->
+        <div id="demo-declined" style="display:none;">
+          <div style="font-family: var(--mono); font-size: 1rem; font-weight: 600; margin: 14px 0 6px;">No problem.</div>
+          <p style="color: var(--muted); font-size: 0.85rem;">We won't ask this customer again. Nothing was stored.</p>
+          <button type="button" class="btn btn-ghost" id="demo-reset-2" style="margin-top:14px;">Run it again</button>
+        </div>
       </div>
     </div>
   </div>
@@ -285,12 +314,12 @@
     <div>
       <div class="badge">● Works with VentText</div>
       <h2>Bad experience? Your proof is already there.</h2>
-      <p>When you vent a complaint through VentText, Reseats hands over the matching receipt automatically — no digging for a photo, no typing an order number. Verified in seconds.</p>
+      <p>Choose the saved receipt and attach it to a complaint, return request, or warranty case — no digging for paper or retyping purchase details.</p>
       <a href="#start" class="btn btn-primary">Connect to VentText</a>
     </div>
     <div class="mock-thread">
       <div class="mock-row"><span>Complaint sent to Mario's Trattoria</span><span class="ok">✓</span></div>
-      <div class="mock-row"><span>Receipt matched from Reseats</span><span class="ok">✓</span></div>
+      <div class="mock-row"><span>Receipt attached from Reseats</span><span class="ok">✓</span></div>
       <div class="mock-row"><span>Verification</span><span class="ok">instant</span></div>
       <div class="mock-row"><span>Status</span><span class="ok">RESOLVED</span></div>
     </div>
@@ -302,16 +331,16 @@
     <div class="section-head">
       <div class="eyebrow">Pricing</div>
       <h2>Free to start, simple to grow</h2>
-      <p>Personal use is free, forever. Upgrade for family sharing and unlimited history.</p>
+      <p>Start with the focused receipt vault. Additional plans can follow after the pilot proves demand.</p>
     </div>
     <div class="grid-3">
       <div class="price-card">
         <div class="tier">PERSONAL</div>
         <div class="amount">Free</div>
         <ul>
-          <li>Unlimited receipt capture</li>
+          <li>QR claims and manual uploads</li>
           <li>12 months of history</li>
-          <li>VentText integration</li>
+          <li>Return, warranty, and complaint help</li>
         </ul>
       </div>
       <div class="price-card featured">
@@ -327,7 +356,7 @@
         <div class="tier">FAMILY</div>
         <div class="amount">$8/mo</div>
         <ul>
-          <li>Up to 5 linked accounts</li>
+          <li>Up to 5 family members</li>
           <li>Shared receipt vault</li>
           <li>Everything in Plus</li>
         </ul>
@@ -355,6 +384,143 @@
     </div>
   </div>
 </footer>
+
+<!--
+  Point the checkout demo at the deployed API.
+  Railway gives you this URL after the first deploy (Settings -> Networking ->
+  Generate Domain). Uncomment and set it; leave it commented and the card falls
+  back to a labelled local simulation.
+-->
+<!-- <script>window.RESEATS_API_BASE = 'https://reseats-api.up.railway.app';</script> -->
+
+<script>
+(function () {
+  'use strict';
+
+  // Point this at the deployed backend. Left empty, the checkout card falls
+  // back to a local simulation so the page is never broken by an API outage —
+  // a marketing page showing a stack trace is worse than a static mockup.
+  var API_BASE = window.RESEATS_API_BASE || '';
+
+  var el = function (id) { return document.getElementById(id); };
+  var prompt = el('demo-prompt');
+  var pending = el('demo-pending');
+  var saved = el('demo-saved');
+  var declined = el('demo-declined');
+  var liveBadge = el('demo-live-badge');
+
+  if (!prompt) return;
+
+  function show(which) {
+    [prompt, pending, saved, declined].forEach(function (node) {
+      node.style.display = node === which ? 'block' : 'none';
+    });
+  }
+
+  function money(cents, currency) {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: currency || 'USD'
+    }).format(cents / 100);
+  }
+
+  // Shape-identical to what POST /v1/demo/checkout returns, so the render path
+  // below is the same whether the call succeeded or we fell back.
+  function simulated() {
+    return {
+      id: 'rcpt_demo_' + Math.random().toString(36).slice(2, 10),
+      merchant: { name: "Mario's Trattoria" },
+      currency: 'USD',
+      amounts: { subtotal_cents: 5800, tax_cents: 440, total_cents: 6240 },
+      purchased_at: new Date().toISOString(),
+      payment: { brand: 'visa', last4: '4242' },
+      line_items: [
+        { description: 'Dinner for two', quantity: 1, total_cents: 5800 }
+      ],
+      simulated: true
+    };
+  }
+
+  function render(receipt) {
+    var when = new Date(receipt.purchased_at).toLocaleString(undefined, {
+      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+    });
+    var card = receipt.payment && receipt.payment.last4
+      ? ' · ' + receipt.payment.brand + ' ' + receipt.payment.last4
+      : '';
+    el('demo-receipt-meta').textContent = receipt.merchant.name + ' · ' + when + card;
+
+    var lines = el('demo-receipt-lines');
+    lines.innerHTML = '';
+
+    function addRow(label, cents, muted) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex; justify-content:space-between; font-size:0.88rem; margin-bottom:6px; color: var(--' + (muted ? 'muted' : 'ink-600') + ');';
+      var left = document.createElement('span');
+      left.textContent = label;
+      var right = document.createElement('span');
+      right.textContent = money(cents, receipt.currency);
+      row.appendChild(left);
+      row.appendChild(right);
+      lines.appendChild(row);
+    }
+
+    (receipt.line_items || []).forEach(function (item) {
+      addRow(item.description, item.total_cents, false);
+    });
+
+    // Without these the line items visibly do not add up to the total.
+    var amounts = receipt.amounts || {};
+    if (amounts.discount_cents) addRow('Discount', -amounts.discount_cents, true);
+    if (amounts.tax_cents) addRow('Tax', amounts.tax_cents, true);
+    if (amounts.tip_cents) addRow('Tip', amounts.tip_cents, true);
+
+    el('demo-receipt-total').textContent = money(receipt.amounts.total_cents, receipt.currency);
+    el('demo-receipt-id').textContent = receipt.simulated
+      ? 'simulated — no backend configured'
+      : receipt.id;
+
+    show(saved);
+  }
+
+  el('demo-save').addEventListener('click', function () {
+    show(pending);
+
+    if (!API_BASE) {
+      // No backend wired up: keep the illusion, label it honestly.
+      setTimeout(function () { render(simulated()); }, 450);
+      return;
+    }
+
+    var controller = new AbortController();
+    var timeout = setTimeout(function () { controller.abort(); }, 6000);
+
+    fetch(API_BASE.replace(/\/$/, '') + '/v1/demo/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ basket: 'dinner', card: { brand: 'visa', last4: '4242' } }),
+      signal: controller.signal
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (receipt) {
+        liveBadge.style.display = 'inline';
+        render(receipt);
+      })
+      .catch(function () {
+        // Rate limited, offline, cold start — fall back rather than fail.
+        render(simulated());
+      })
+      .finally(function () { clearTimeout(timeout); });
+  });
+
+  el('demo-decline').addEventListener('click', function () { show(declined); });
+  el('demo-reset').addEventListener('click', function () { show(prompt); });
+  el('demo-reset-2').addEventListener('click', function () { show(prompt); });
+})();
+</script>
 
 </body>
 </html>
