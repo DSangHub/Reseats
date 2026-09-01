@@ -250,130 +250,52 @@ suite('POS + card integration', () => {
     expect(res.json().enrolled).toBe(false);
   });
 
-  /* ---- customer side ---- */
+  /* ---- focused customer vault ---- */
 
-  let userToken: string;
-
-  it('links a card through the provider adapter', async () => {
-    userToken = sessionToken(USER_UUID);
-
-    const session = await app.inject({
+  it('uploads a manual receipt and opens an after-sale help case', async () => {
+    const token = sessionToken(USER_UUID);
+    const uploaded = await app.inject({
       method: 'POST',
-      url: '/v1/cards/link_sessions',
-      headers: { authorization: `Bearer ${userToken}` },
-      payload: {},
+      url: '/v1/receipts/manual',
+      headers: { authorization: `Bearer ${token}` },
+      payload: {
+        merchant_name: 'Northside Electronics',
+        purchased_at: new Date('2026-08-18T15:00:00.000Z').toISOString(),
+        total_cents: 1499,
+        currency: 'USD',
+        document: {
+          filename: 'receipt.png',
+          mime_type: 'image/png',
+          content_base64: Buffer.from('small receipt image').toString('base64'),
+        },
+      },
     });
-    expect(session.statusCode).toBe(201);
-    expect(session.json().link_token).toContain('mock-link-');
+    expect(uploaded.statusCode).toBe(201);
+    expect(uploaded.json().source).toBe('manual');
 
-    const created = await app.inject({
+    const help = await app.inject({
       method: 'POST',
+      url: `/v1/receipts/${uploaded.json().id}/help`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: {
+        type: 'warranty',
+        summary: 'Item stopped working',
+        details: 'Please help me use the warranty.',
+      },
+    });
+    expect(help.statusCode).toBe(201);
+    expect(help.json().type).toBe('warranty');
+    expect(help.json().status).toBe('open');
+  });
+
+  it('does not expose the removed card-link API', async () => {
+    const token = sessionToken(USER_UUID);
+    const response = await app.inject({
+      method: 'GET',
       url: '/v1/cards',
-      headers: { authorization: `Bearer ${userToken}` },
-      payload: { public_token: 'public-4242' },
+      headers: { authorization: `Bearer ${token}` },
     });
-    expect(created.statusCode).toBe(201);
-    const card = created.json().data[0];
-    expect(card.brand).toBe('visa');
-    expect(card.last4).toBe('4242');
-  });
-
-  it('retroactively adopts the unattributed receipt once the card is linked', async () => {
-    const res = await app.inject({
-      method: 'GET',
-      url: '/v1/receipts',
-      headers: { authorization: `Bearer ${userToken}` },
-    });
-    expect(res.statusCode).toBe(200);
-    const ids = res.json().data.map((r: { id: string }) => r.id);
-    expect(ids).toContain(receiptId);
-  });
-
-  it('now reports the customer as enrolled at the register', async () => {
-    const res = await app.inject({
-      method: 'POST',
-      url: '/v1/pos/customers/lookup',
-      headers: posHeaders(),
-      payload: { card: { brand: 'visa', last4: '4242' } },
-    });
-    expect(res.json()).toMatchObject({ enrolled: true, matched_on: 'card' });
-  });
-
-  it('matches an incoming card transaction to the existing POS receipt', async () => {
-    const { rows } = await db.query<{ id: string; provider_item_id: string }>(
-      `select id, provider_item_id from card_connections limit 1`,
-    );
-    const connection = rows[0]!;
-
-    mock.queueTransaction(connection.provider_item_id, {
-      amountCents: 6240,
-      descriptor: "SQ *MARIO'S TRATTORIA",
-      transactedAt: new Date('2026-08-17T19:33:00.000Z'),
-    });
-
-    const result = await withTransaction((tx) => syncConnection(tx, connection.id));
-    expect(result.ingested).toBe(1);
-    expect(result.matched).toBe(1);
-
-    const receipt = await db.query<{ card_transaction_id: string | null; source: string }>(
-      `select card_transaction_id, source from receipts where id = $1`,
-      [receiptId],
-    );
-    expect(receipt.rows[0]!.card_transaction_id).not.toBeNull();
-    // The POS receipt was enriched, not replaced by a card-only stub.
-    expect(receipt.rows[0]!.source).toBe('pos');
-  });
-
-  it('creates a standalone receipt for a card transaction with no POS counterpart', async () => {
-    const { rows } = await db.query<{ id: string; provider_item_id: string }>(
-      `select id, provider_item_id from card_connections limit 1`,
-    );
-    const connection = rows[0]!;
-
-    mock.queueTransaction(connection.provider_item_id, {
-      amountCents: 1499,
-      descriptor: 'NORTHSIDE ELECTRONICS',
-      transactedAt: new Date('2026-08-18T15:00:00.000Z'),
-    });
-
-    const result = await withTransaction((tx) => syncConnection(tx, connection.id));
-    expect(result.ingested).toBe(1);
-    expect(result.matched).toBe(0);
-
-    const res = await app.inject({
-      method: 'GET',
-      url: '/v1/receipts',
-      headers: { authorization: `Bearer ${userToken}` },
-    });
-    const cardReceipt = res
-      .json()
-      .data.find((r: { merchant: { name: string } }) => r.merchant.name === 'Northside Electronics');
-    expect(cardReceipt).toBeDefined();
-    expect(cardReceipt.source).toBe('card');
-    expect(cardReceipt.amounts.total_cents).toBe(1499);
-  });
-
-  it('ignores a replayed provider transaction', async () => {
-    const { rows } = await db.query<{ id: string; provider_item_id: string }>(
-      `select id, provider_item_id from card_connections limit 1`,
-    );
-    const connection = rows[0]!;
-
-    const txn = mock.queueTransaction(connection.provider_item_id, {
-      providerTransactionId: 'ptx_dupe',
-      amountCents: 2500,
-      descriptor: 'GREEN LEAF GROCERS',
-    });
-    await withTransaction((tx) => syncConnection(tx, connection.id));
-
-    mock.queueTransaction(connection.provider_item_id, txn);
-    const second = await withTransaction((tx) => syncConnection(tx, connection.id));
-    expect(second.ingested).toBe(0);
-
-    const { rows: counts } = await db.query<{ count: number }>(
-      `select count(*)::int as count from card_transactions where provider_transaction_id = 'ptx_dupe'`,
-    );
-    expect(counts[0]!.count).toBe(1);
+    expect(response.statusCode).toBe(404);
   });
 
   it('refunds a receipt and reflects the new status', async () => {
