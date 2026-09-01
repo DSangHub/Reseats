@@ -2,11 +2,10 @@ import { randomBytes } from 'node:crypto';
 import { config } from '../config.js';
 import type { Db } from '../db/index.js';
 import { many, one } from '../db/index.js';
-import { cardFingerprint, hashLookupKey, normalizePhone } from '../lib/crypto.js';
+import { hashLookupKey, normalizePhone } from '../lib/crypto.js';
 import { badRequest, notFound } from '../lib/errors.js';
 import { normalizeDescriptor } from '../lib/normalize.js';
 import type { LineItemRow, PaymentTender, ReceiptRow } from '../types.js';
-import { matchReceiptToCardTransaction } from './matching.js';
 
 export interface PosLineItemInput {
   description: string;
@@ -79,18 +78,6 @@ export async function resolveCustomer(
     return row.id;
   }
 
-  if (tender.fingerprint) {
-    const row = await one<{ user_id: string }>(
-      d,
-      `select user_id from payment_cards
-        where fingerprint = $1 and status = 'active'
-        order by created_at asc
-        limit 1`,
-      [tender.fingerprint],
-    );
-    if (row) return row.user_id;
-  }
-
   if (c?.phone) {
     const hash = hashLookupKey(normalizePhone(c.phone), config().API_KEY_PEPPER);
     const row = await one<{ id: string }>(d, `select id from users where phone_hash = $1`, [hash]);
@@ -109,7 +96,7 @@ export async function resolveCustomer(
 
 export function buildTender(
   input: PosTransactionInput['payment'],
-  pepper: string,
+  _pepper: string,
 ): PaymentTender {
   if (!input) return {};
   const tender: PaymentTender = {};
@@ -119,16 +106,7 @@ export function buildTender(
   if (input.entry_mode) tender.entry_mode = input.entry_mode;
   if (input.network) tender.network = input.network;
 
-  if (input.fingerprint) {
-    tender.fingerprint = input.fingerprint;
-  } else if (input.brand && input.last4) {
-    // Expiry is deliberately excluded here: a POS rarely reports it, and a
-    // fingerprint that includes it would never match one built from card data.
-    tender.fingerprint = cardFingerprint(
-      { brand: input.brand, last4: input.last4 },
-      pepper,
-    );
-  }
+  // Card details are display-only. They are never used to identify a customer.
   return tender;
 }
 
@@ -235,12 +213,8 @@ export async function createPosReceipt(
 
   const lineItems = await insertLineItems(d, inserted.id, input.line_items ?? []);
 
-  // The moment a POS receipt lands, try to bind it to a card transaction we may
-  // already have pulled from the provider feed.
-  const matched = await matchReceiptToCardTransaction(d, inserted);
-
   const result: CreatedReceipt = {
-    receipt: matched ?? inserted,
+    receipt: inserted,
     lineItems,
     deduplicated: false,
   };
