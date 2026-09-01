@@ -16,6 +16,24 @@ interface JwtClaims {
   [k: string]: unknown;
 }
 
+/** Issues the short, HS256 sessions used by the browser-only pilot vault. */
+export function issueJwtHs256(
+  claims: JwtClaims,
+  secret: string,
+  expiresInSeconds: number,
+  nowMs = Date.now(),
+): string {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({
+    ...claims,
+    exp: Math.floor(nowMs / 1000) + expiresInSeconds,
+  })).toString('base64url');
+  const signature = createHmac('sha256', secret)
+    .update(`${header}.${payload}`)
+    .digest('base64url');
+  return `${header}.${payload}.${signature}`;
+}
+
 /**
  * Verifies an HS256 JWT. Compatible with Supabase Auth access tokens — set
  * SESSION_JWT_SECRET to the project's JWT secret and the vault app's session

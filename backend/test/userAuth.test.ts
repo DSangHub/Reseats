@@ -1,8 +1,9 @@
 import { createHmac } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { verifyJwtHs256 } from '../src/middleware/userAuth.js';
+import { issueJwtHs256, verifyJwtHs256 } from '../src/middleware/userAuth.js';
 
 const SECRET = 'test-session-secret';
+const USER_ID = '11111111-1111-4111-8111-111111111111';
 
 function makeToken(
   payload: Record<string, unknown>,
@@ -17,6 +18,10 @@ function makeToken(
 const NOW = 1_800_000_000_000;
 
 describe('verifyJwtHs256', () => {
+  it('accepts a token issued for the pilot vault', () => {
+    const token = issueJwtHs256({ sub: USER_ID }, SECRET, 3600, NOW);
+    expect(verifyJwtHs256(token, SECRET, NOW)).toMatchObject({ sub: USER_ID });
+  });
   it('accepts a valid token', () => {
     const token = makeToken({ sub: 'auth-user-1', exp: NOW / 1000 + 3600 });
     expect(verifyJwtHs256(token, SECRET, NOW).sub).toBe('auth-user-1');

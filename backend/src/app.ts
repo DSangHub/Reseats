@@ -9,6 +9,7 @@ import { healthRoutes } from './routes/health.js';
 import { posTransactionRoutes } from './routes/pos/transactions.js';
 import { posWebhookRoutes } from './routes/pos/webhooks.js';
 import { receiptRoutes } from './routes/receipts.js';
+import { sessionRoutes } from './routes/sessions.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const cfg = config();
@@ -98,6 +99,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   );
 
   // Customer receipt vault: QR claims, manual uploads, and after-sale help.
+  await app.register(sessionRoutes, { prefix: '/v1' });
   await app.register(receiptRoutes, { prefix: '/v1' });
   await app.register(demoRoutes, { prefix: '/v1' });
 
