@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Reseats Vault</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{--paper:#fbf9f4;--card:#fff;--line:#e6dfce;--ink:#1f2320;--muted:#66706a;--green:#2f9e7a;--green2:#22795d;--tint:#e4f3ee;--red:#b63829;--mono:'IBM Plex Mono',monospace;--sans:'Inter',sans-serif}
+  *{box-sizing:border-box} body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans)}
+  a{color:inherit}.top{border-bottom:1px solid var(--line);background:rgba(251,249,244,.96);position:sticky;top:0;z-index:2}.top-inner{max-width:980px;margin:auto;padding:16px 22px;display:flex;justify-content:space-between;align-items:center}.logo{font-family:var(--mono);font-weight:700;text-decoration:none}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:8px}.back{font-size:.86rem;color:var(--muted)}
+  main{max-width:980px;margin:auto;padding:42px 22px 70px}.eyebrow{font:600 .72rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--green2)}h1{font:700 clamp(1.8rem,5vw,2.6rem) var(--mono);margin:10px 0}.lead{color:var(--muted);max-width:650px;line-height:1.55}.device{display:inline-flex;gap:8px;align-items:center;background:var(--tint);color:var(--green2);font:500 .75rem var(--mono);padding:8px 10px;border-radius:7px;margin-top:12px}
+  .tabs{display:flex;gap:8px;margin:30px 0 18px;flex-wrap:wrap}.tab{border:1px solid var(--line);background:#fff;padding:10px 14px;border-radius:8px;font:600 .82rem var(--mono);cursor:pointer}.tab.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .panel{display:none}.panel.active{display:block}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px}.box h2{font:600 1.08rem var(--mono);margin:0 0 7px}.box p{color:var(--muted);line-height:1.5;margin:0 0 18px;font-size:.9rem}
+  label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin:14px 0 6px}input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:7px;background:var(--paper);font:400 .9rem var(--sans);color:var(--ink)}textarea{min-height:100px;resize:vertical}input:focus,select:focus,textarea:focus{outline:2px solid var(--green);outline-offset:1px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .btn{border:0;border-radius:8px;background:var(--green);color:#fff;padding:12px 16px;font:600 .86rem var(--mono);cursor:pointer;margin-top:16px}.btn:hover{background:var(--green2)}.btn:disabled{opacity:.55;cursor:wait}.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line);margin-top:8px}.status{display:none;margin:16px 0;padding:12px 14px;border-radius:8px;font-size:.86rem}.status.show{display:block}.status.ok{background:var(--tint);color:var(--green2)}.status.bad{background:#fce9e6;color:var(--red)}
+  .empty{border:1px dashed var(--line);border-radius:12px;padding:36px;text-align:center;color:var(--muted)}.receipts{display:grid;gap:12px}.receipt{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px;display:grid;grid-template-columns:1fr auto;gap:12px}.receipt h3{font:600 1rem var(--mono);margin:0 0 6px}.meta{color:var(--muted);font-size:.83rem}.total{font:700 1.08rem var(--mono);text-align:right}.help-link{border:0;background:none;color:var(--green2);font-weight:700;cursor:pointer;padding:8px 0 0}.cases{display:grid;gap:10px}.case{background:#fff;border:1px solid var(--line);border-radius:9px;padding:15px}.case strong{font-family:var(--mono);text-transform:capitalize}.case small{display:block;color:var(--muted);margin-top:6px}
+  @media(max-width:700px){.grid,.row{grid-template-columns:1fr}.receipt{grid-template-columns:1fr}.total{text-align:left}}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner"><a class="logo" href="index.html"><span class="dot"></span>Reseats</a><a class="back" href="index.html">Back to site</a></div></header>
+<main>
+  <div class="eyebrow">Your receipt vault</div>
+  <h1>Save receipts. Get help later.</h1>
+  <p class="lead">Claim a merchant receipt with its QR code or upload a photo or PDF. Then use the saved receipt for a return, warranty request, or complaint.</p>
+  <div class="device">Private pilot vault · saved on this browser</div>
+  <div id="global-status" class="status" role="status" aria-live="polite"></div>
+
+  <nav class="tabs" aria-label="Vault sections">
+    <button class="tab active" data-panel="save">Save a receipt</button>
+    <button class="tab" data-panel="receipts">My receipts</button>
+    <button class="tab" data-panel="help">After-sale help</button>
+  </nav>
+
+  <section class="panel active" id="panel-save">
+    <div class="grid">
+      <form class="box" id="claim-form">
+        <h2>Claim with a QR code</h2><p>Scanning a participating merchant's QR opens this page with the claim code filled in.</p>
+        <label for="claim-token">Claim code</label><input id="claim-token" required minlength="10" autocomplete="off" placeholder="rct_…">
+        <button class="btn" type="submit">Claim receipt</button>
+      </form>
+      <form class="box" id="upload-form">
+        <h2>Upload a receipt</h2><p>JPEG, PNG, WebP, or PDF. Maximum file size: 1 MB.</p>
+        <label for="receipt-file">Receipt file</label><input id="receipt-file" type="file" required accept="image/jpeg,image/png,image/webp,application/pdf">
+        <label for="merchant">Merchant</label><input id="merchant" required maxlength="200" placeholder="Store or restaurant name">
+        <div class="row"><div><label for="purchased">Purchase date</label><input id="purchased" type="datetime-local" required></div><div><label for="total">Total</label><input id="total" type="number" min="0" step="0.01" required placeholder="0.00"></div></div>
+        <label for="notes">Notes (optional)</label><textarea id="notes" maxlength="2000" placeholder="Order number, warranty detail, or anything useful"></textarea>
+        <button class="btn" type="submit">Save to my vault</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-receipts"><div id="receipt-list" class="empty">Loading your vault…</div></section>
+
+  <section class="panel" id="panel-help">
+    <div class="grid">
+      <form class="box" id="help-form">
+        <h2>Start after-sale help</h2><p>Choose the receipt that proves the purchase.</p>
+        <label for="help-receipt">Receipt</label><select id="help-receipt" required><option value="">Save a receipt first</option></select>
+        <label for="help-type">Help needed</label><select id="help-type" required><option value="return">Return</option><option value="warranty">Warranty</option><option value="complaint">Complaint</option></select>
+        <label for="help-summary">Summary</label><input id="help-summary" required maxlength="300" placeholder="What do you need resolved?">
+        <label for="help-details">Details</label><textarea id="help-details" required maxlength="5000" placeholder="Describe the issue and the outcome you want"></textarea>
+        <button class="btn" type="submit">Create help case</button>
+      </form>
+      <div class="box"><h2>Your cases</h2><p>Returns, warranties, and complaints started from this vault.</p><div id="case-list" class="empty">No help cases yet.</div></div>
+    </div>
+  </section>
+</main>
+<script>
+(function(){
+  'use strict';
+  var API='https://reseats-production.up.railway.app/v1';
+  var TOKEN_KEY='reseats_pilot_session';
+  var receipts=[];
+  function status(message,kind){var n=document.getElementById('global-status');n.textContent=message;n.className='status show '+(kind||'ok');window.scrollTo({top:0,behavior:'smooth'});}
+  function clearStatus(){document.getElementById('global-status').className='status';}
+  function api(path,options){options=options||{};return ensureSession().then(function(token){options.headers=Object.assign({'Content-Type':'application/json','Authorization':'Bearer '+token},options.headers||{});return fetch(API+path,options);}).then(function(res){return res.json().catch(function(){return{};}).then(function(body){if(!res.ok)throw new Error(body.error&&body.error.message||'Request failed ('+res.status+')');return body;});});}
+  function ensureSession(){var token=localStorage.getItem(TOKEN_KEY);if(token)return Promise.resolve(token);return fetch(API+'/session/anonymous',{method:'POST',headers:{'Content-Type':'application/json'}}).then(function(res){if(!res.ok)throw new Error('Could not create your vault.');return res.json();}).then(function(session){localStorage.setItem(TOKEN_KEY,session.access_token);return session.access_token;});}
+  function money(receipt){return new Intl.NumberFormat(undefined,{style:'currency',currency:receipt.currency||'USD'}).format((receipt.amounts.total_cents||0)/100);}
+  function openPanel(name){document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('active',x.dataset.panel===name);});document.querySelectorAll('.panel').forEach(function(x){x.classList.toggle('active',x.id==='panel-'+name);});clearStatus();if(name==='receipts')loadReceipts();if(name==='help'){loadReceipts();loadCases();}}
+  document.querySelectorAll('.tab').forEach(function(tab){tab.addEventListener('click',function(){openPanel(tab.dataset.panel);});});
+  function loadReceipts(){return api('/receipts').then(function(body){receipts=body.data||[];renderReceipts();renderReceiptOptions();}).catch(function(err){document.getElementById('receipt-list').className='empty';document.getElementById('receipt-list').textContent=err.message;});}
+  function renderReceipts(){var list=document.getElementById('receipt-list');list.innerHTML='';if(!receipts.length){list.className='empty';list.textContent='No receipts yet. Save your first receipt to see it here.';return;}list.className='receipts';receipts.forEach(function(r){var card=document.createElement('article');card.className='receipt';var left=document.createElement('div');var h=document.createElement('h3');h.textContent=r.merchant.name;var m=document.createElement('div');m.className='meta';m.textContent=new Date(r.purchased_at).toLocaleString()+' · '+r.source;var help=document.createElement('button');help.className='help-link';help.textContent='Use for after-sale help →';help.addEventListener('click',function(){openPanel('help');document.getElementById('help-receipt').value=r.id;});left.append(h,m,help);var total=document.createElement('div');total.className='total';total.textContent=money(r);card.append(left,total);list.appendChild(card);});}
+  function renderReceiptOptions(){var select=document.getElementById('help-receipt');var current=select.value;select.innerHTML='';var blank=document.createElement('option');blank.value='';blank.textContent=receipts.length?'Choose a receipt':'Save a receipt first';select.appendChild(blank);receipts.forEach(function(r){var o=document.createElement('option');o.value=r.id;o.textContent=r.merchant.name+' — '+money(r);select.appendChild(o);});select.value=current;}
+  function loadCases(){api('/help_cases').then(function(body){var list=document.getElementById('case-list');var cases=body.data||[];list.innerHTML='';if(!cases.length){list.className='empty';list.textContent='No help cases yet.';return;}list.className='cases';cases.forEach(function(c){var card=document.createElement('div');card.className='case';var title=document.createElement('strong');title.textContent=c.type+': '+c.summary;var meta=document.createElement('small');meta.textContent=c.status+' · '+new Date(c.created_at).toLocaleDateString();card.append(title,meta);list.appendChild(card);});}).catch(function(err){status(err.message,'bad');});}
+  function fileBase64(file){return new Promise(function(resolve,reject){var reader=new FileReader();reader.onload=function(){resolve(String(reader.result).split(',')[1]||'');};reader.onerror=function(){reject(new Error('Could not read that file.'));};reader.readAsDataURL(file);});}
+  document.getElementById('upload-form').addEventListener('submit',function(e){e.preventDefault();clearStatus();var button=e.submitter;var file=document.getElementById('receipt-file').files[0];if(!file)return;if(file.size>1000000){status('That file is larger than 1 MB. Choose a smaller image or PDF.','bad');return;}button.disabled=true;button.textContent='Saving…';fileBase64(file).then(function(base64){return api('/receipts/manual',{method:'POST',body:JSON.stringify({merchant_name:document.getElementById('merchant').value.trim(),purchased_at:new Date(document.getElementById('purchased').value).toISOString(),total_cents:Math.round(Number(document.getElementById('total').value)*100),currency:'USD',notes:document.getElementById('notes').value.trim()||undefined,document:{filename:file.name,mime_type:file.type,content_base64:base64}})});}).then(function(){e.target.reset();status('Receipt saved to your vault.','ok');return loadReceipts();}).catch(function(err){status(err.message,'bad');}).finally(function(){button.disabled=false;button.textContent='Save to my vault';});});
+  document.getElementById('claim-form').addEventListener('submit',function(e){e.preventDefault();var button=e.submitter;button.disabled=true;button.textContent='Claiming…';api('/receipts/claim',{method:'POST',body:JSON.stringify({claim_token:document.getElementById('claim-token').value.trim()})}).then(function(){status('Receipt claimed and saved.','ok');e.target.reset();return loadReceipts();}).catch(function(err){status(err.message,'bad');}).finally(function(){button.disabled=false;button.textContent='Claim receipt';});});
+  document.getElementById('help-form').addEventListener('submit',function(e){e.preventDefault();var id=document.getElementById('help-receipt').value;if(!id){status('Choose a receipt first.','bad');return;}var button=e.submitter;button.disabled=true;button.textContent='Creating…';api('/receipts/'+encodeURIComponent(id)+'/help',{method:'POST',body:JSON.stringify({type:document.getElementById('help-type').value,summary:document.getElementById('help-summary').value.trim(),details:document.getElementById('help-details').value.trim()})}).then(function(){e.target.reset();status('After-sale help case created.','ok');return loadCases();}).catch(function(err){status(err.message,'bad');}).finally(function(){button.disabled=false;button.textContent='Create help case';});});
+  var params=new URLSearchParams(location.search);var claim=params.get('claim');if(claim){document.getElementById('claim-token').value=claim;}
+  var now=new Date();now.setMinutes(now.getMinutes()-now.getTimezoneOffset());document.getElementById('purchased').value=now.toISOString().slice(0,16);
+  ensureSession().then(loadReceipts).catch(function(err){status(err.message,'bad');});
+})();
+</script>
+</body>
+</html>
