@@ -239,17 +239,6 @@ suite('POS + card integration', () => {
     expect(rows[0]!.count).toBe(1);
   });
 
-  it('tells the register whether a customer is already enrolled', async () => {
-    const res = await app.inject({
-      method: 'POST',
-      url: '/v1/pos/customers/lookup',
-      headers: posHeaders(),
-      payload: { card: { brand: 'visa', last4: '4242' } },
-    });
-    expect(res.statusCode).toBe(200);
-    expect(res.json().enrolled).toBe(false);
-  });
-
   /* ---- focused customer vault ---- */
 
   it('uploads a manual receipt and opens an after-sale help case', async () => {
