@@ -1,7 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { useTestConfig } from './setup.js';
 import { buildTender, resolveCustomer, serializeReceipt } from '../src/services/receipts.js';
-import { cardFingerprint } from '../src/lib/crypto.js';
 import { stubDb, when } from './stubDb.js';
 import type { ReceiptRow } from '../src/types.js';
 
@@ -10,19 +9,11 @@ beforeAll(() => useTestConfig());
 const PEPPER = 'test-pepper';
 
 describe('buildTender', () => {
-  it('derives a fingerprint from brand + last4 when the POS sends none', () => {
-    const tender = buildTender({ brand: 'Visa', last4: '4242' }, PEPPER);
-    expect(tender.fingerprint).toBe(cardFingerprint({ brand: 'visa', last4: '4242' }, PEPPER));
+  it('keeps card details display-only', () => {
+    const tender = buildTender({ brand: 'Visa', last4: '4242', fingerprint: 'from-pos' }, PEPPER);
     expect(tender.brand).toBe('visa');
-  });
-
-  it('prefers a fingerprint the POS already has', () => {
-    const tender = buildTender({ brand: 'visa', last4: '4242', fingerprint: 'from-pos' }, PEPPER);
-    expect(tender.fingerprint).toBe('from-pos');
-  });
-
-  it('omits the fingerprint when last4 is missing', () => {
-    expect(buildTender({ brand: 'visa' }, PEPPER).fingerprint).toBeUndefined();
+    expect(tender.last4).toBe('4242');
+    expect(tender.fingerprint).toBeUndefined();
   });
 
   it('returns an empty tender for a cash sale', () => {
@@ -34,13 +25,14 @@ describe('buildTender', () => {
 describe('resolveCustomer', () => {
   const base = { external_id: 's1', purchased_at: new Date().toISOString(), total_cents: 100 };
 
-  it('resolves by linked card fingerprint without the customer identifying themselves', async () => {
-    const db = stubDb([when('from payment_cards', [{ user_id: 'user_card' }])]);
-    const userId = await resolveCustomer(db, base, { fingerprint: 'fp1' });
-    expect(userId).toBe('user_card');
+  it('does not identify a customer from card details', async () => {
+    const db = stubDb([]);
+    const userId = await resolveCustomer(db, base, { brand: 'visa', last4: '4242' });
+    expect(userId).toBeNull();
+    expect(db.calls.some((call) => call.sql.includes('payment_cards'))).toBe(false);
   });
 
-  it('prefers an explicit user id over the card', async () => {
+  it('prefers an explicit user id', async () => {
     const db = stubDb([when('from users where id', [{ id: 'user_explicit' }])]);
     const userId = await resolveCustomer(
       db,
