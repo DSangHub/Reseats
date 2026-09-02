@@ -115,13 +115,14 @@
   .mock-row .ok { color: var(--keep-green); }
 
   /* Pricing */
-  .price-card { background: #fff; border: 1px solid var(--paper-200); border-radius: 10px; padding: 30px; }
+  .price-card { background: #fff; border: 1px solid var(--paper-200); border-radius: 10px; padding: 30px; display: flex; flex-direction: column; }
   .price-card.featured { border-color: var(--keep-green); }
   .price-card .tier { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; }
   .price-card .amount { font-family: var(--mono); font-size: 1.8rem; font-weight: 700; margin-bottom: 14px; }
-  .price-card ul { list-style: none; color: var(--ink-600); font-size: 0.92rem; }
+  .price-card ul { list-style: none; color: var(--ink-600); font-size: 0.92rem; margin-bottom: 22px; }
   .price-card li { padding: 6px 0; }
   .price-card li::before { content: '— '; color: var(--keep-green); }
+  .price-card .price-action { margin-top: auto; justify-content: center; width: 100%; }
 
   .cta-band { background: var(--keep-green); padding: 70px 0; text-align: center; }
   .cta-band h2 { font-family: var(--mono); font-size: 2rem; margin-bottom: 14px; color: #fff; }
@@ -351,6 +352,7 @@
           <li>12 months of history</li>
           <li>Return, warranty, and complaint help</li>
         </ul>
+        <a href="vault.html" class="btn btn-primary price-action">Open Free Vault</a>
       </div>
       <div class="price-card featured">
         <div class="tier">PLUS</div>
@@ -360,6 +362,7 @@
           <li>Warranty expiration alerts</li>
           <li>Tax-category export</li>
         </ul>
+        <a href="vault.html" class="btn btn-ghost price-action" aria-label="Start free while Plus is coming soon">Plus Coming Soon · Start Free</a>
       </div>
       <div class="price-card">
         <div class="tier">FAMILY</div>
@@ -369,6 +372,7 @@
           <li>Shared receipt vault</li>
           <li>Everything in Plus</li>
         </ul>
+        <a href="vault.html" class="btn btn-ghost price-action" aria-label="Start free while Family is coming soon">Family Coming Soon · Start Free</a>
       </div>
     </div>
   </div>
@@ -534,3 +538,4 @@
 <script src="/pwa.js" defer></script>
 </body>
 </html>
+997a9c426db8056cfeb5fca6b748bd2602485693
