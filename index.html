@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reseats — A seat for all your receipts</title>
+<meta name="theme-color" content="#2F9E7A">
+<meta name="description" content="One place for receipts and after-sale help.">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/reseats-192.png">
+<link rel="apple-touch-icon" href="/icons/reseats-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Reseats">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
   :root {
@@ -156,6 +164,7 @@
     <p class="lead">Reseats quietly saves every receipt you get — email, in-store, or online — so it's already there the moment you need proof of purchase.</p>
     <div class="hero-ctas">
       <a href="vault.html" class="btn btn-primary">Start Saving Receipts</a>
+      <button type="button" class="btn btn-ghost" data-install-app hidden>Install App</button>
       <a href="#venttext" class="btn btn-ghost">See VentText Integration</a>
     </div>
     <div class="hero-note">&gt; free for personal use, always</div>
@@ -522,5 +531,6 @@
 })();
 </script>
 
+<script src="/pwa.js" defer></script>
 </body>
 </html>
