@@ -103,6 +103,17 @@
   .use-card.highlight { border-color: var(--stamp-red); background: #FFF6F4; }
   .use-card.highlight .mark { color: var(--stamp-red); }
 
+  .merchant-signup { margin-top: 42px; padding: 30px; background: #fff; border: 1px solid var(--paper-200); border-radius: 10px; scroll-margin-top: 90px; }
+  .merchant-signup h3 { font: 700 1.35rem var(--mono); margin-bottom: 8px; }
+  .merchant-signup p { color: var(--ink-600); margin-bottom: 22px; }
+  .merchant-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .merchant-fields label { display: grid; gap: 6px; font-size: .84rem; font-weight: 600; }
+  .merchant-fields input, .merchant-fields select, .merchant-fields textarea { width: 100%; min-width: 0; padding: 11px; border: 1px solid var(--paper-200); border-radius: 5px; background: #fff; color: var(--ink-900); font: inherit; }
+  .merchant-fields input:focus, .merchant-fields select:focus, .merchant-fields textarea:focus { outline: 2px solid var(--keep-green); outline-offset: 2px; }
+  .merchant-fields .wide { grid-column: 1 / -1; }
+  .merchant-status { margin-top: 14px; min-height: 24px; }
+  @media (max-width: 600px) { .merchant-signup { padding: 22px; } .merchant-fields { grid-template-columns: 1fr; } }
+
   /* VentText integration band */
   .integration { background: var(--ink-900); color: var(--paper-50); padding: 80px 0; }
   .integration .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
@@ -150,7 +161,7 @@
     <div class="nav-links">
       <a href="#how">How It Works</a>
       <a href="#why">Why Reseats</a>
-      <a href="#checkout">For Merchants</a>
+      <a href="#merchant-signup">For Merchants</a>
       <a href="#venttext">VentText</a>
       <a href="#pricing">Pricing</a>
     </div>
@@ -315,6 +326,27 @@
           <button type="button" class="btn btn-ghost" id="demo-reset-2" style="margin-top:14px;">Run it again</button>
         </div>
       </div>
+    </div>
+    <div class="merchant-signup" id="merchant-signup">
+      <div class="eyebrow">Merchant signup</div>
+      <h3>Bring Reseats to your checkout</h3>
+      <p>Tell us about your business and register system. We'll contact you about connecting your POS and setting up receipt delivery. Submitting this form does not activate an integration.</p>
+      <form id="merchant-form">
+        <div class="merchant-fields">
+          <label>Business name <input name="business_name" required maxlength="200" autocomplete="organization"></label>
+          <label>Contact person <input name="contact_name" required maxlength="150" autocomplete="name"></label>
+          <label>Business email <input name="email" type="email" required maxlength="254" autocomplete="email"></label>
+          <label>Phone number <input name="phone" type="tel" required maxlength="30" autocomplete="tel"></label>
+          <label>City <input name="city" required maxlength="100" autocomplete="address-level2"></label>
+          <label>State <select name="state" required><option value="">Choose state</option></select></label>
+          <label>Register / POS system <select name="pos_provider" required><option value="">Choose system</option><option>Square</option><option>Clover</option><option>Shopify POS</option><option>Toast</option><option>Lightspeed</option><option>Other</option><option>Not sure</option></select></label>
+          <label>Number of locations <input name="locations" type="number" min="1" max="10000" value="1" required></label>
+          <label class="wide">Anything we should know? <textarea name="message" rows="3" maxlength="2000" placeholder="Optional: your POS version, number of registers, or integration contact"></textarea></label>
+        </div>
+        <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
+        <button class="btn btn-primary" type="submit" style="margin-top:20px">Submit merchant signup</button>
+        <div class="merchant-status" id="merchant-status" role="status" aria-live="polite"></div>
+      </form>
     </div>
   </div>
 </section>
@@ -535,6 +567,34 @@
 })();
 </script>
 
+<script>
+(function () {
+  var form = document.getElementById('merchant-form');
+  var status = document.getElementById('merchant-status');
+  var states = 'AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC'.split(' ');
+  var select = form.elements.state;
+  states.forEach(function (code) { var option = document.createElement('option'); option.value = code; option.textContent = code; select.appendChild(option); });
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+    var button = form.querySelector('button[type="submit"]');
+    var data = Object.fromEntries(new FormData(form).entries());
+    data.locations = Number(data.locations);
+    button.disabled = true;
+    status.textContent = 'Submitting…';
+    fetch(window.RESEATS_API_BASE.replace(/\/$/, '') + '/v1/merchant-signups', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+    }).then(function (response) {
+      if (!response.ok) return response.json().catch(function () { return {}; }).then(function (body) {
+        throw new Error(body.error && body.error.message || 'Unable to submit. Please try again.');
+      });
+      status.textContent = 'Thanks. Your merchant signup was received. We’ll contact you about the next steps.';
+      form.reset();
+    }).catch(function (error) { status.textContent = error.message; })
+      .finally(function () { button.disabled = false; });
+  });
+})();
+</script>
 <script src="/pwa.js" defer></script>
 </body>
 </html>
