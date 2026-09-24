@@ -128,7 +128,7 @@ export async function posTransactionRoutes(app: FastifyInstance): Promise<void> 
               ? {
                   claim: {
                     token: created.claimToken,
-                    url: `${config().PUBLIC_BASE_URL}/claim/${created.claimToken}`,
+                    url: new URL(`/vault.html?claim=${encodeURIComponent(created.claimToken)}`, config().CLAIM_SITE_URL).toString(),
                     expires_in_days: 90,
                   },
                 }
