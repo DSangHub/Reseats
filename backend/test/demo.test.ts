@@ -57,7 +57,28 @@ suite('public demo endpoints', () => {
     expect(body.merchant.name).toBe("Mario's Trattoria");
     expect(body.amounts.total_cents).toBe(6240);
     expect(body.line_items).toHaveLength(1);
-    expect(body.claim.url).toContain('https://reseats.org/claim/');
+    expect(body.claim.url).toMatch(/^https:\/\/reseats\.org\/vault\.html\?claim=rct_/);
+  });
+
+  it('stores a merchant signup for follow-up', async () => {
+    const payload = {
+      business_name: 'Main Street Market',
+      contact_name: 'Alex Rivera',
+      email: 'alex@example.com',
+      phone: '555-123-4567',
+      city: 'Fresno',
+      state: 'CA',
+      pos_provider: 'Square',
+      locations: 2,
+    };
+    const res = await app.inject({ method: 'POST', url: '/v1/merchant-signups', payload });
+    expect(res.statusCode).toBe(201);
+    expect(res.json().status).toBe('received');
+    const { rows } = await db.query<{ business_name: string; pos_provider: string }>(
+      'select business_name, pos_provider from merchant_signups where id = $1',
+      [res.json().id],
+    );
+    expect(rows[0]).toMatchObject({ business_name: payload.business_name, pos_provider: 'Square' });
   });
 
   it('provisions the demo merchant exactly once across calls', async () => {
