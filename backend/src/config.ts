@@ -19,6 +19,7 @@ const schema = z.object({
   HOST: z.string().default('0.0.0.0'),
   LOG_LEVEL: z.string().default('info'),
   PUBLIC_BASE_URL: z.string().url().default('http://localhost:8080'),
+  CLAIM_SITE_URL: z.string().url().default('https://reseats.org'),
 
   // Browser origins allowed to call the API. The site and the API are separate
   // origins in this deployment, so this must list the site. Empty means
