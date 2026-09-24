@@ -146,7 +146,7 @@ export async function demoRoutes(app: FastifyInstance): Promise<void> {
       ...(result.claimToken
         ? {
             claim: {
-              url: `${config().PUBLIC_BASE_URL}/claim/${result.claimToken}`,
+              url: new URL(`/vault.html?claim=${encodeURIComponent(result.claimToken)}`, config().CLAIM_SITE_URL).toString(),
               expires_in_days: 90,
             },
           }
