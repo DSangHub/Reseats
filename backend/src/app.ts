@@ -6,6 +6,7 @@ import { config } from './config.js';
 import { ApiError } from './lib/errors.js';
 import { demoRoutes } from './routes/demo.js';
 import { healthRoutes } from './routes/health.js';
+import { merchantSignupRoutes } from './routes/merchantSignups.js';
 import { posTransactionRoutes } from './routes/pos/transactions.js';
 import { posWebhookRoutes } from './routes/pos/webhooks.js';
 import { receiptRoutes } from './routes/receipts.js';
@@ -117,6 +118,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   );
 
   await app.register(healthRoutes);
+  await app.register(merchantSignupRoutes, { prefix: '/v1' });
 
   // Merchant (POS) surface — API-key authenticated.
   await app.register(
