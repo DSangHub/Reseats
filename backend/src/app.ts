@@ -1,3 +1,4 @@
+import { accountRoutes } from './routes/accounts.js';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
@@ -42,6 +43,7 @@ export async function buildApp(): Promise<FastifyInstance> {
           'req.headers["stripe-signature"]',
           'req.body.payment.fingerprint',
           'req.body.customer.phone',
+          'req.body.password',
         ],
         censor: '[redacted]',
       },
@@ -130,6 +132,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   );
 
   // Customer receipt vault: QR claims, manual uploads, and after-sale help.
+  await app.register(accountRoutes, { prefix: '/v1' });
   await app.register(sessionRoutes, { prefix: '/v1' });
   await app.register(receiptRoutes, { prefix: '/v1' });
   await app.register(demoRoutes, { prefix: '/v1' });
