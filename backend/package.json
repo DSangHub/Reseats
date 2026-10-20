@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.build.json",
-    "start": "npm run migrate:prod && node dist/src/index.js",
+    "start": "node dist/src/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -3,11 +3,12 @@
   "build": {
     "builder": "RAILPACK",
     "buildCommand": "npm ci && npm run build",
-    "watchPatterns": ["backend/**"]
+    "watchPatterns": [
+      "backend/**"
+    ]
   },
   "deploy": {
     "startCommand": "npm run start",
-    "preDeployCommand": ["npm run migrate:prod"],
     "healthcheckPath": "/readyz",
     "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",
