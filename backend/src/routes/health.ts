@@ -8,7 +8,7 @@ export async function healthRoutes(app: FastifyInstance): Promise<void> {
   /** Readiness: the database must actually answer, not just be configured. */
   app.get('/readyz', async (_req, reply) => {
     try {
-      await db.query('select 1');
+      await db.query('select password_hash from users limit 0');
       return { status: 'ready', card_providers: listProviders() };
     } catch (err) {
       reply.code(503);
